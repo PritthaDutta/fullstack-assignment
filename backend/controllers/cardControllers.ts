@@ -3,14 +3,17 @@ import {Card} from '../models/Card'
 
 export const getAllCards = async(req: Request, res: Response)=>{
     const { q } = req.query;
+
+    const decodedText = q ? decodeURIComponent(q as string) : "";
+
     try {
         let cards;
-        if (q) {
+        if (decodedText) {
             // If query is present, search for cards where the title or description contains the query string
             const searchQuery = { 
                 $or: [
-                    { title: { $regex: q, $options: 'i' } },   // Case-insensitive search for title
-                    { description: { $regex: q, $options: 'i' } }  // Case-insensitive search for description
+                    { title: { $regex: decodedText, $options: 'i' } },   // Case-insensitive search for title
+                    { description: { $regex: decodedText, $options: 'i' } }  // Case-insensitive search for description
                 ] 
             };
             cards = await Card.find(searchQuery);
