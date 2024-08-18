@@ -1,5 +1,4 @@
 export const fetchData = async(url: string, method: string, data?: Object)=>{
-    console.log(`${process.env.REACT_APP_BACKEND_URI}${url}`);
     
     const res = await fetch(`${process.env.REACT_APP_BACKEND_URI}${url}`,{
         method: method,

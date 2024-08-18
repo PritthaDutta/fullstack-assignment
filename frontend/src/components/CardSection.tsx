@@ -1,6 +1,8 @@
 import React from 'react'
 import { useCardContext } from "../context/card.provider"
 import { useNavigate } from 'react-router-dom';
+import CardsLoader from './CardsLoader';
+import NoData from './NoData';
 
 interface Item{
     id: number;
@@ -9,13 +11,21 @@ interface Item{
 }
 
 const CardSection = () => {
-    const { items } = useCardContext(); 
+    const { items, loading } = useCardContext(); 
 
     const navigate = useNavigate();
 
     const handleClickOnCard = (title: string)=>{
         const encodedTitle = encodeURIComponent(title);
         navigate(`/card/${encodedTitle}`);
+    }
+
+    if(loading){
+        return <CardsLoader />
+    }
+
+    if(!items?.length){
+        return <NoData />
     }
 
     return (

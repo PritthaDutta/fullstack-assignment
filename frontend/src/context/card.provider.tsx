@@ -11,9 +11,10 @@ export interface Item {
 interface CardContextType {
   items: Item[];
   searchCard: (text: string)=>void;
+  loading: boolean;
 }
 
-const CardContext = createContext<CardContextType>({items: [], searchCard: ()=>{}});
+const CardContext = createContext<CardContextType>({items: [], searchCard: ()=>{}, loading: false});
 
 export const CardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
 
@@ -21,22 +22,16 @@ export const CardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     fetchCards();
   },[])
 
-  const [items, setItems] = useState<Item[]>(
-    [
-        { id: 1, title: 'Card 1', description: "Card 1 description. This is used for describing a specific card" },
-        { id: 2, title: 'Card 2', description: "Card 2 description. This is used for describing a specific card" },
-        { id: 3, title: 'Card 3', description: "Card 3 description. This is used for describing a specific card" },
-        { id: 4, title: 'Card 4', description: "Card 4 description. This is used for describing a specific card" },
-        { id: 5, title: 'Card 5', description: "Card 5 description. This is used for describing a specific card" },
-        { id: 6, title: 'Card 6', description: "Card 6 description. This is used for describing a specific card" }
-    ]
-  );
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const fetchCards = async(searchText?: string )=>{
       let uri = `/api/cards`
 
+      setLoading(true);
       if(searchText) uri = `/api/cards/?q=${encodeURIComponent(searchText)}`
       const data = await fetchData(uri, "GET");
+      setLoading(false);
       setItems(data?.cards)
   }
   
@@ -46,7 +41,7 @@ export const CardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }
 
   return (
-    <CardContext.Provider value={{ items, searchCard }}>
+    <CardContext.Provider value={{ items, searchCard, loading }}>
         {children}
     </CardContext.Provider>
   );
@@ -57,5 +52,5 @@ export const useCardContext = () => {
     if (context === undefined) {
         throw new Error('useCardContext must be used within a CardProvider');
     }
-  return context;
+    return context;
 };
