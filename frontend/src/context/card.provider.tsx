@@ -1,7 +1,8 @@
 // CardContext.tsx
-import React, { createContext, useState, useContext, ReactNode, SetStateAction, Dispatch } from 'react';
+import React, { createContext, useState, useContext, ReactNode, SetStateAction, Dispatch, useEffect } from 'react';
+import { fetchData } from '../utils/helper';
 
-interface Item {
+export interface Item {
   id: number;
   title: string;
   description: string;
@@ -15,6 +16,11 @@ interface CardContextType {
 const CardContext = createContext<CardContextType>({items: [], searchCard: ()=>{}});
 
 export const CardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+
+  useEffect(()=>{
+    fetchCards();
+  },[])
+
   const [items, setItems] = useState<Item[]>(
     [
         { id: 1, title: 'Card 1', description: "Card 1 description. This is used for describing a specific card" },
@@ -26,8 +32,17 @@ export const CardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     ]
   );
 
-  const searchCard = (searchText: string)=>{
-      
+  const fetchCards = async(searchText?: string )=>{
+      let uri = `/api/cards`
+
+      if(searchText) uri = `/api/cards/?q=${encodeURIComponent(searchText)}`
+      const data = await fetchData(uri, "GET");
+      setItems(data?.cards)
+  }
+  
+  const searchCard = async(searchText: string)=>{
+    if(searchText)  
+      await fetchCards(searchText)
   }
 
   return (

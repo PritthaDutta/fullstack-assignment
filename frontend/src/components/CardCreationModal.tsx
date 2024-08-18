@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import {TfiClose} from 'react-icons/tfi'
+import { fetchData } from '../utils/helper';
 
 interface CardSectionModalProps{
     closeAddCardModal: ()=>void
@@ -16,8 +17,10 @@ const CardCreationModal: React.FC<CardSectionModalProps> = ({closeAddCardModal})
         description: "",
     });
 
-    const createCard = ()=>{
+    const createCard = async()=>{
+        const data = await fetchData("/api/cards", "POST", card);
         closeAddCardModal();
+        window.location.reload();
     }
 
     return (
