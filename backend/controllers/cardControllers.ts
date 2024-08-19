@@ -1,28 +1,38 @@
 import { Request, Response } from 'express';
 import {Card} from '../models/Card'
 
-export const getAllCards = async(req: Request, res: Response)=>{
-    const { q } = req.query;
+export const getAllCards = async(req: Request, res: Response) => {
+    const { q, page = '1', limit = '6' } = req.query;
 
     const decodedText = q ? decodeURIComponent(q as string) : "";
+    const pageNumber = parseInt(page as string, 10);
+    const limitNumber = parseInt(limit as string, 10);
 
     try {
-        let cards;
+        let query = {};
         if (decodedText) {
-            // If query is present, search for cards where the title or description contains the query string
-            const searchQuery = { 
+            query = { 
                 $or: [
-                    { title: { $regex: decodedText, $options: 'i' } },   // Case-insensitive search for title
-                    { description: { $regex: decodedText, $options: 'i' } }  // Case-insensitive search for description
+                    { title: { $regex: decodedText, $options: 'i' } },
+                    { description: { $regex: decodedText, $options: 'i' } }
                 ] 
             };
-            cards = await Card.find(searchQuery);
-        } else {
-            // If no query is present, return all cards
-            cards = await Card.find();
         }
 
-        return res.status(200).json({success: true, cards});
+        const totalCards = await Card.countDocuments(query);
+        const totalPages = Math.ceil(totalCards / limitNumber);
+
+        const cards = await Card.find(query)
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber);
+
+        return res.status(200).json({
+            success: true,
+            cards,
+            currentPage: pageNumber,
+            totalPages,
+            hasMore: pageNumber < totalPages
+        });
     } catch (error) {
         console.error("Can't get Cards", error);
         res.status(500).json({success: false, message: "Internal Server Error"})
